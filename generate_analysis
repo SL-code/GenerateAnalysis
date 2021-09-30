@@ -1,0 +1,32 @@
+#include <iostream>
+
+
+int main()
+{
+  // HPGe Detectors
+  // // List Sort
+  // // Add Matrix
+  // // Do Hist
+  // // Time Projection
+  // // Germanium Yield
+
+
+
+  // Fission Chamber
+  // // List Sort
+  // // Add Matrix
+  // // Do Hist
+  // // Time Projection
+  // // FC Yield
+  // // Smooth Relative
+
+  // Verify Yield
+
+  // Process
+
+  // Germanium Efficientcy
+
+
+
+}
+
