@@ -51,10 +51,12 @@ int main(int argc, char** argv)
   // Initialize an Analysis singleton.
   // The initialisation of an Analysis object
   //  creates the proper file structure of the <path> directory.
-  Analysis analysis{};
+  Analysis Analysis{Path};
 
 
-  /*
+  Analysis.DetectorsAnalysis();
+  Analysis.FissionChamberAnalysis();
+/*
   // HPGe Detectors
   // // List Sort  - Adds one week of data and puts it in <Path>/Dig{1..3}/Sort/<week>
   Analysis.HPGe.ListSort();
@@ -80,7 +82,7 @@ int main(int argc, char** argv)
   Analysis.FC.TimeProjection();
   // // FC Yield
   Analysis.FC.Yield();  
-  // // Smooth Relative
+  // // Smooth Relative*/
 
   // Verify Yield
   Analysis.VerifyYield();
@@ -88,7 +90,7 @@ int main(int argc, char** argv)
   Analysis.Process();
   // Germanium Efficientcy
   Analysis.GermaniumEfficiency();
-  */
+
 
 }
 

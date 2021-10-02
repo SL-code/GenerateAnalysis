@@ -1,6 +1,14 @@
+#pragma once
 
-
-class FC
+class FissionChamber
 {
 
+
+public:
+    FissionChamber();
+    void ListSort();
+    void AddMatrix();
+    void DoHist();
+    void TimeProjection();
+    void Yield();
 };
