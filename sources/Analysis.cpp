@@ -66,23 +66,25 @@ void Analysis::GenerateProperFileStructure()
 
 
     //Generate the Dig1/Sort/<weeks>, Dig2/Sort/<weeks>, Dig3/Sort/<weeks>, FC/Sort/<weeks>
-    for(auto& Directory : ProperAnalysisDirectory)
-    {
-        // If there is a Dig*/Sort/ folder already skip generationg it
-        if(!std::filesystem::exists(Directory/"Sort"))
-        {
-            // Read all the data folder names.
-            std::vector<std::filesystem::path> DataWeeks;
-            for(auto& DataDirectory: std::filesystem::directory_iterator(Directory))
-                DataWeeks.push_back(DataDirectory);
+    std::for_each(ProperAnalysisDirectory.begin(),
+                  ProperAnalysisDirectory.end(),
+                  [](auto& Directory){
+                      // If there is a Dig*/Sort/ folder already skip generationg it
+                      if(!std::filesystem::exists(Directory/"Sort"))
+                      {
+                          // Read all the data folder names.
+                          std::vector<std::filesystem::path> DataWeeks;
+                          for(auto& DataDirectory: std::filesystem::directory_iterator(Directory))
+                              DataWeeks.push_back(DataDirectory);
 
-            // Genreate the Sort/DataFolder for each data run.
-            std::filesystem::create_directory(Directory/"Sort");
-            for(auto& Week: DataWeeks)
-                std::filesystem::create_directory(Directory/"Sort"/Week.filename());
-        }
-
-    }
+                          // Genreate the Sort/DataFolder for each data run.
+                          std::filesystem::create_directory(Directory/"Sort");
+                          std::for_each(DataWeeks.begin(),
+                                        DataWeeks.end(),
+                                        [&Directory](auto& Week)
+                                        {std::filesystem::create_directory(Directory/"Sort"/Week.filename());});
+                    }
+                 });
 
 
     // These directories will be used in the analysis of the data.
@@ -104,8 +106,6 @@ void Analysis::GenerateProperFileStructure()
     std::for_each(DirectoriesToGenerate.begin(),
                   DirectoriesToGenerate.end(),
                   [&AnalysisDirectory](auto& dir){std::filesystem::create_directory(AnalysisDirectory/dir);});
-
-    // TODO: Generate the Dig1/Sort/<weeks>, Dig2/Sort/<weeks>, Dig3/Sort/<weeks>, FC/Sort/<weeks>
 }
 
 
