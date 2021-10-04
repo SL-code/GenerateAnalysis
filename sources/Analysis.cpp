@@ -50,13 +50,11 @@ void Analysis::GenerateProperFileStructure()
         AnalysisDirectoryContents.push_back(dir_entry);
     }
 
-
-
     for(auto const& ProperEntry: ProperAnalysisDirectory)
     {
         isProperAnalysisDirectory = std::any_of(AnalysisDirectoryContents.begin(),
                                                 AnalysisDirectoryContents.end(),
-                                                [&ProperEntry](auto& DirectoryEntry){std::cout << DirectoryEntry << " " << ProperEntry << "\n"; return DirectoryEntry == ProperEntry;});
+                                                [&ProperEntry](auto& DirectoryEntry){return DirectoryEntry == ProperEntry;});
 
         if(!isProperAnalysisDirectory)
         {
@@ -66,8 +64,30 @@ void Analysis::GenerateProperFileStructure()
         }
     }
 
+
+    //Generate the Dig1/Sort/<weeks>, Dig2/Sort/<weeks>, Dig3/Sort/<weeks>, FC/Sort/<weeks>
+    for(auto& Directory : ProperAnalysisDirectory)
+    {
+        // If there is a Dig*/Sort/ folder already skip generationg it
+        if(!std::filesystem::exists(Directory/"Sort"))
+        {
+            // Read all the data folder names.
+            std::vector<std::filesystem::path> DataWeeks;
+            for(auto& DataDirectory: std::filesystem::directory_iterator(Directory))
+                DataWeeks.push_back(DataDirectory);
+
+            // Genreate the Sort/DataFolder for each data run.
+            std::filesystem::create_directory(Directory/"Sort");
+            for(auto& Week: DataWeeks)
+                std::filesystem::create_directory(Directory/"Sort"/Week.filename());
+        }
+
+    }
+
+
     // These directories will be used in the analysis of the data.
-    const std::array<std::string, 9> DirectoriesToGenerate = {
+    const std::array<std::string, 10> DirectoriesToGenerate = {
+        "bin",
         "AngDistr",
         "dSdO",
         "Fit",
@@ -78,7 +98,6 @@ void Analysis::GenerateProperFileStructure()
         "Sort",
         "Yield"
     };
-
 
     // Generate all directories that should be generated.
     auto AnalysisDirectory = m_AnalysisDirectory;

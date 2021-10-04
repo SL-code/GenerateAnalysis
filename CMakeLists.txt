@@ -9,5 +9,5 @@ set(HEADERS ./headers/Analysis.h ./headers/HPGe.h ./headers/FC.h )
 include_directories(./headers)
 
 
-add_executable(generate_analysis generate_analysis.cpp ${SOURCES} ${HEADERS})
+add_executable(generate_analysis main.cpp ${SOURCES} ${HEADERS})
 
