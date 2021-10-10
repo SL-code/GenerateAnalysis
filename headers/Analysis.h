@@ -13,18 +13,24 @@
 
 class Analysis: public HPGe, public FissionChamber
 {
-    HPGe m_HPGe{};
-    FissionChamber m_FC{};
+    HPGe m_HPGe;
+    FissionChamber m_FC;
     std::filesystem::path m_AnalysisDirectory;
+    int m_NumberOfTOFChannels;
 
 private:
     void GenerateProperFileStructure();
 
 public:
-    Analysis(std::string&);
+    Analysis(std::string&, int);
+
     void DetectorsAnalysis();
+
     void FissionChamberAnalysis();
+
     void VerifyYield();
+
     void Process();
+
     void GermaniumEfficiency();
 };

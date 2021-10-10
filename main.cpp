@@ -51,38 +51,11 @@ int main(int argc, char** argv)
   // Initialize an Analysis singleton.
   // The initialisation of an Analysis object
   //  creates the proper file structure of the <path> directory.
-  Analysis Analysis{Path};
+  Analysis Analysis{Path, std::stoi(NumOfTofChannels)};
 
 
   Analysis.DetectorsAnalysis();
   Analysis.FissionChamberAnalysis();
-/*
-  // HPGe Detectors
-  // // List Sort  - Adds one week of data and puts it in <Path>/Dig{1..3}/Sort/<week>
-  Analysis.HPGe.ListSort();
-  // // Add Matrix - Adds all weeks in <Path>/Sort/Det{1..12}
-  Analysis.HPGe.AddMatrix();
-  // // Do Hist - Project the experiment matrix onto the Amplitude Axis
-  Analysis.HPGe.DoHist();
-  // // Time Projection - Project the experiment matrix onto the Time Axis
-  Analysis.HPGe.TimeProjection();
-  // // Germanium Yield - Generate the yield of the HPGe detectors using the files in <Path>/Fit directory
-  Analysis.HPGe.Yield();
-
-
-
-  // Fission Chamber
-  // // List Sort
-  Analysis.FC.ListSort();
-  // // Add Matrix
-  Analysis.FC.AddMAtrix();
-  // // Do Hist
-  Analysis.FC.DoHist();
-  // // Time Projection
-  Analysis.FC.TimeProjection();
-  // // FC Yield
-  Analysis.FC.Yield();  
-  // // Smooth Relative*/
 
   // Verify Yield
   Analysis.VerifyYield();

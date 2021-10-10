@@ -1,31 +1,52 @@
 #include <HPGe.h>
 
 
-    HPGe::HPGe()
-    {
+HPGe::HPGe() = default;
 
-    }
-    void HPGe::ListSort()
-    {
+HPGe::HPGe(std::filesystem::path AnalysisDirectory): m_AnalysisDirectory{AnalysisDirectory}
+{
 
-    }
+}
 
-    void HPGe::AddMatrix()
-    {
+void HPGe::ListSort()
+{
+    // These are the directories containing the Detector data
+    const std::array<std::filesystem::path, 3> HPGeData =
+    {   m_AnalysisDirectory/"Dig1",
+        m_AnalysisDirectory/"Dig2",
+        m_AnalysisDirectory/"Dig3"
+    };
 
-    }
+    // TODO: Check if the data directories contain the same weeks of data
 
-    void HPGe::DoHist()
-    {
+    GenerateListFiles(HPGeData[0]);
+    FindPositionOfGammaFlash();
+    WriteListSortToAnalysisFile();
 
-    }
 
-    void HPGe::TimeProjection()
-    {
+//     std::for_each(std::execution::par,
+//                     HPGeData.begin(),
+//                     HPGeData.end(),
+//                     GenerateListFiles);
 
-    }
+}
 
-    void HPGe::Yield()
-    {
+void HPGe::AddMatrix()
+{
 
-    }
+}
+
+void HPGe::DoHist()
+{
+
+}
+
+void HPGe::TimeProjection()
+{
+
+}
+
+void HPGe::Yield()
+{
+
+}

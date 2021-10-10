@@ -4,9 +4,11 @@
 
 
 
-Analysis::Analysis(std::string& Path) : m_AnalysisDirectory{Path}
+Analysis::Analysis(std::string& Path, int NumberOfTOFChannels):m_AnalysisDirectory{Path}, m_NumberOfTOFChannels{NumberOfTOFChannels}
 {
     GenerateProperFileStructure();
+    m_HPGe = HPGe{m_AnalysisDirectory};
+    m_FC = FissionChamber{m_AnalysisDirectory};
 }
 
 
@@ -33,7 +35,7 @@ void Analysis::FissionChamberAnalysis()
 void Analysis::GenerateProperFileStructure()
 {
     // At first the analysis directory should contain the data to be analysed.
-    // This data wiill be found in the Dig1, Dig2, Dig3 and FC directories.
+    // This data will be found in the Dig1, Dig2, Dig3 and FC directories.
     const std::array<std::filesystem::path, 4> ProperAnalysisDirectory =
     {   m_AnalysisDirectory/"Dig1",
         m_AnalysisDirectory/"Dig2",
@@ -64,11 +66,12 @@ void Analysis::GenerateProperFileStructure()
         }
     }
 
-
     //Generate the Dig1/Sort/<weeks>, Dig2/Sort/<weeks>, Dig3/Sort/<weeks>, FC/Sort/<weeks>
     std::for_each(ProperAnalysisDirectory.begin(),
                   ProperAnalysisDirectory.end(),
-                  [](auto& Directory){
+                  [](auto& Directory){ // If there is a no Sort directory in the data folders
+                                       // generate it along with the Sort/<week> directories
+                                       // that will be used for analysis.
                       // If there is a Dig*/Sort/ folder already skip generationg it
                       if(!std::filesystem::exists(Directory/"Sort"))
                       {
@@ -88,8 +91,7 @@ void Analysis::GenerateProperFileStructure()
 
 
     // These directories will be used in the analysis of the data.
-    const std::array<std::string, 10> DirectoriesToGenerate = {
-        "bin",
+    const std::vector<std::string> DirectoriesToGenerate = {
         "AngDistr",
         "dSdO",
         "Fit",
@@ -97,6 +99,7 @@ void Analysis::GenerateProperFileStructure()
         "Input",
         "Levels",
         "Msc",
+        "Test",
         "Sort",
         "Yield"
     };

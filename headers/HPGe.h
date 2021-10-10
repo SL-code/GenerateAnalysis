@@ -1,11 +1,20 @@
 #pragma once
+#include <filesystem>
+#include <algorithm>
+#include <execution>
+
+#include "HPGe_ListSort.h"
+
+
 
 class HPGe
 {
+    std::filesystem::path m_AnalysisDirectory;
 
 
 public:
     HPGe();
+    HPGe(std::filesystem::path);
     void ListSort();
     void AddMatrix();
     void DoHist();
