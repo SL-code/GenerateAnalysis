@@ -13,5 +13,4 @@ void WriteListSortToAnalysisFile();
 
 std::vector<int> GetRunFilesFromLogFile(std::filesystem::directory_entry);
 
-int GetLengthOfTable(std::fstream*);
-std::vector<std::vector<std::string>> GetLogFileTable(std::fstream*, int);
+std::vector<std::vector<std::string>> GetLogFileTable(std::fstream*);

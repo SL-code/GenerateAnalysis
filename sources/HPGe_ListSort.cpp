@@ -52,79 +52,29 @@ std::vector<int> GetRunFilesFromLogFile(std::filesystem::directory_entry LogFile
     if(logFile.is_open())
     {
         // Get the length of the logFile table
-        int LengthOfTable = GetLengthOfTable(&logFile);
         using Table = std::vector<std::vector<std::string>>;
-        Table table = GetLogFileTable(&logFile, LengthOfTable);
+        Table table = GetLogFileTable(&logFile);
     }
     logFile.close();
 
     return {1};
 }
 
-int GetLengthOfTable(std::fstream* logFile)
+
+std::vector<std::vector<std::string>> GetLogFileTable(std::fstream* logFile)
 {
-    // Ignore the first 98 lines (configuration data)
-        // We are interested in the table at the end.
-        for(int i = 0; i < 98; ++i)
-            logFile->ignore(1000, '\n');
-        // Ignore everithing untill the new line character
-
-        // Position: start of the table
-        int BeginningOfTable = logFile->tellg();
-        // I can do this because the acquisition program
-        // always writes this many lines.
-        // TODO: Extract this table in a more general approach.
-
-
-        // Go to the end of the file
-        logFile->seekg(0, logFile->end);
-        // Position: end of file
-        int EndOfTable = logFile->tellg();
-
-        // Subract 120 (bytes writen by the acquisition system)
-        // Position: End of table
-        EndOfTable -= 120;
-
-        // Go to the BeginningOfTable
-        logFile->seekg(0, logFile->beg);
-        for(int i = 0; i < 98; ++i)
-            logFile->ignore(1000, '\n');
-
-        // Return the length
-        return (EndOfTable - BeginningOfTable);
-}
-
-std::vector<std::vector<std::string>> GetLogFileTable(std::fstream* logFile, int LengthOfTable)
-{
-
-    logFile->seekg(0, logFile->beg);
-    std::string line;
-//     std::regex TableLine ("[0-9]+\s+[0-9]+/[0-9]+/[0-9]+\s+[0-9]+:[0-9]+:[0-9]+\s+[0-9].[0-9][0-9]\s+[0-9].[0-9][0-9]\s+[0-9].[0-9][0-9]\s+[0-9].[0-9][0-9]");
-//     std::regex TableLine ("( [0-9]+)(\s+)([0-9]+)/([0-9]+)/([0-9]+)(\s+)([0-9]+):([0-9]+):([0-9]+)(\s+)([0-9]+).([0-9]+)(\s+)([0-9]+).([0-9]+)(\s+)([0-9]+).([0-9]+)(\s+)([0-9]+).([0-9]+)");
-//     std::regex TableLine (" 49		07/09/21	16:10:36	1.32	1.68	1.13	1.53");
+  std::string line;
   std::regex TableLine(" [0-9]+\t+[0-9]+/[0-9]+/[0-9]+\t+[0-9]+:[0-9]+:[0-9]+\t+[0-9].[0-9]+\t+[0-9].[0-9]+\t+[0-9].[0-9]+\t+[0-9].[0-9]+");
-
-
-    while(getline(*logFile, line))
+  while(getline(*logFile, line))
+  {
+    //bool isTableLine = std::regex_match(line, TableLine);
+    //std::cout << line << "  isTL:  ";
+    //std::cout << isTableLine << '\n';
+    if(std::regex_match(line, TableLine))
     {
-        bool isTableLine = std::regex_match(line, TableLine);
-        std::cout << line << "  isTL:  ";
-        std::cout << isTableLine << '\n';
-        if(isTableLine)
-        {
-            std::cout << line << '\n' << '\n';
-        }
-
+      std::cout << line << '\n' << '\n';
     }
 
-//     int BeginningOfTable = logFile->tellg();
-//     while(logFile->tellg() != BeginningOfTable + LengthOfTable)
-//     {
-//
-//     }
-
-
-
-
-    return {{""}};
+  }
+  return {{""}};
 }
