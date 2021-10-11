@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <vector>
 #include <array>
-#include <ranges>
 #include <iostream>
 #include <algorithm>
 #include "HPGe.h"
