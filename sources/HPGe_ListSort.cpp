@@ -134,10 +134,57 @@ std::vector<int> RunFilesToInclude(std::vector<std::vector<int>> Table)
 
 void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directory_entry DataWeek)
 {
+    // Set the current path to the DataWeek Directory, while saving the current path to return later
+    std::filesystem::path InitialPath = std::filesystem::current_path();
+    std::filesystem::current_path(DataWeek);
+    
+    // Generate the listfiles_ch* files in the Data Directory
     std::fstream listfiles_ch1, listfiles_ch2, listfiles_ch3, listfiles_ch4 ;
-    std::vector<std::fstream*> listfiles = {&listfiles_ch1, &listfiles_ch2, &listfiles_ch3, &listfiles_ch4 };
+    listfiles_ch1.open("listfiles_ch1", std::ios_base::out);
+    listfiles_ch2.open("listfiles_ch2", std::ios_base::out);
+    listfiles_ch3.open("listfiles_ch3", std::ios_base::out);
+    listfiles_ch4.open("listfiles_ch4", std::ios_base::out);
+
+    const std::vector<std::fstream> listfiles = {listfiles_ch1, listfiles_ch2, listfiles_ch3, listfiles_ch4 };
+    const std::vector<std::string> Channels = {"ch1", "ch2", "ch3", "ch4"};
+    
+    for(auto index = 0; index < listfiles.size(); ++index)
+    {
+      // In most cases lst_files should be of size RunFiles.size()
+      // 
+      // But there will be cases where this size is too small
+      //  this case is take care of by .append()
+      std::vector<std::filesystem::path> lst_files;
+      lst_files.resize(RunFiles.size());
+      
+      for(auto& lst_file: std::filesystem::directory_iterator(DataWeek))
+      {
+        // Regex to fint the *_ch*_*.lst files to include in the listfiles_ch*
+        const std::regex isLSTfile (Channels[index].append("_\\.*.lst"));
+        if(std::regex_match(lst_file, isLSTfile))
+        {
+          lst_files.append(lst_file);
+        }
+      }
 
 
+      for(auto& FileNumber: RunFiles)
+      {
+        std::regex IsInRunFiles (Channels[index].append("_").append(FileNumber).append(".lst"));
+        for(auto& lst_file: lst_files)
+        {
+          if(std::regex_match(lst_file, IsInRunFiles))
+          {
+            listfiles[index] << lst_file.filename().string() << 'n';
+          }
+        }
+      }
+
+
+
+
+        
+    }
 }
 
 

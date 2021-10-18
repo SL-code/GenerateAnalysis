@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 #include <algorithm>
-#include <execution>
+//#include <execution>
 
 #include "HPGe_ListSort.h"
 
