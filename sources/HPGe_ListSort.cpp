@@ -145,42 +145,50 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
     listfiles_ch3.open("listfiles_ch3", std::ios_base::out);
     listfiles_ch4.open("listfiles_ch4", std::ios_base::out);
 
-    const std::vector<std::fstream> listfiles = {listfiles_ch1, listfiles_ch2, listfiles_ch3, listfiles_ch4 };
+    const std::vector<std::fstream*> listfiles = {&listfiles_ch1, &listfiles_ch2, &listfiles_ch3, &listfiles_ch4};
     const std::vector<std::string> Channels = {"ch1", "ch2", "ch3", "ch4"};
     
-    for(auto index = 0; index < listfiles.size(); ++index)
+    for(auto index = 0; index < listfiles.size(); index++)
     {
       // In most cases lst_files should be of size RunFiles.size()
       // 
       // But there will be cases where this size is too small
       //  this case is take care of by .append()
       std::vector<std::filesystem::path> lst_files;
-      lst_files.resize(RunFiles.size());
+      lst_files.resize(RunFilesToInclude.size());
       
       for(auto& lst_file: std::filesystem::directory_iterator(DataWeek))
       {
         // Regex to fint the *_ch*_*.lst files to include in the listfiles_ch*
-        const std::regex isLSTfile (Channels[index].append("_\\.*.lst"));
-        if(std::regex_match(lst_file, isLSTfile))
+        const std::string LstRegex = Channels[index] + "_\\.*.lst";
+        const std::regex isLSTfile (LstRegex);
+        if(std::regex_match(std::filesystem::absolute(lst_file).filename().string(), isLSTfile))
         {
-          lst_files.append(lst_file);
+          lst_files.push_back(lst_file);
         }
       }
 
 
-      for(auto& FileNumber: RunFiles)
+      for(auto& FileNumber: RunFilesToInclude)
       {
-        std::regex IsInRunFiles (Channels[index].append("_").append(FileNumber).append(".lst"));
+        const std::string FileNumber_s = std::to_string(FileNumber);
+        const std::string RunFileRegex = Channels[index] + "_" + FileNumber_s  + ".lst";
+        const std::regex IsInRunFiles(RunFileRegex);
         for(auto& lst_file: lst_files)
         {
-          if(std::regex_match(lst_file, IsInRunFiles))
+          if(std::regex_match(lst_file.string(), IsInRunFiles))
           {
-            listfiles[index] << lst_file.filename().string() << 'n';
+            std::string FileName   =  lst_file.filename().string();
+            std::cout << FileName << '\n';
           }
         }
       }
 
 
+    listfiles_ch1.close();
+    listfiles_ch2.close();
+    listfiles_ch3.close();
+    listfiles_ch4.close();
 
 
         
