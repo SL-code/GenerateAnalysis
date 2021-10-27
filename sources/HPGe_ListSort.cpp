@@ -10,22 +10,25 @@ void GenerateListFiles(std::filesystem::path DataDirectory)
     // The counting rate in the log file will be used to choose the
     // files that will be analised.
 
-    std::regex logFile ("(.*)_logFile_(.*)");
+    const std::regex logFile ("(.*)_logFile_(.*)");
     // Iterate over all data weeks
-    for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
+    for(const auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
     {
         // Skip the Sort directory
         if(DataWeek == DataDirectory/"Sort"){continue;}
 
         // Iterate over all files in the data week directory and find the logFile.
-        for(auto& file: std::filesystem::directory_iterator(DataWeek))
+        for(const auto& file: std::filesystem::directory_iterator(DataWeek))
         {
             // After finding the log file get the files that will be used for analysis
             if(std::regex_match( std::filesystem::absolute(file).string(), logFile ))
             {
                 std::cout << "Generating List Files For: " << std::filesystem::absolute(DataWeek).filename() << '\n';
-                std::vector<int> RunFilesToInclude = GetRunFilesToInclude(file);
+
+                std::string FilePath = std::filesystem::absolute(file).string();
+                const std::vector<int> RunFilesToInclude = GetRunFilesToInclude(FilePath);
                 WriteListFiles(RunFilesToInclude, DataWeek);
+                break;
             }
         }
     }
@@ -43,11 +46,14 @@ void WriteListSortToAnalysisFile()
 
 
 
-std::vector<int> GetRunFilesToInclude(std::filesystem::directory_entry LogFile)
+std::vector<int> GetRunFilesToInclude(std::string LogFile)
 {
     std::fstream logFile;
-    logFile.open(std::filesystem::absolute(LogFile), std::fstream::in);
+    std::cout << "Inside GetRunFilesToInclude" << LogFile << '\n';
+    logFile.open(LogFile, std::fstream::in);
 
+
+    std::cout << "Inside GetRunFilesToInclude " << logFile.is_open() << '\n';
     std::vector<int> RunFiles;
     if(logFile.is_open())
     {
@@ -55,6 +61,7 @@ std::vector<int> GetRunFilesToInclude(std::filesystem::directory_entry LogFile)
         Table AllRunFilesTable = GetLogFileTable(&logFile);
         RunFiles = RunFilesToInclude(AllRunFilesTable);
     }
+
     logFile.close();
 
     return RunFiles;
@@ -68,6 +75,8 @@ std::vector<std::vector<int>> GetLogFileTable(std::fstream* logFile)
     // A temporary vector to push into Table
     std::vector<int> temp;
     temp.resize(5);
+
+    std::cout << "Inside GetLogFileTable " <<'\n';
 
     // A variable to store the line on the file.
     std::string line;
@@ -113,6 +122,7 @@ std::vector<std::vector<int>> GetLogFileTable(std::fstream* logFile)
 
 std::vector<int> RunFilesToInclude(std::vector<std::vector<int>> Table)
 {
+    std::cout << "Inside RunFilesToInclude " <<'\n';
     std::vector<int> RunFiles;
     // Check if any of the Channels have a conting rate of 0
     // If so, exclude that RunFile.
@@ -137,7 +147,7 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
     // Set the current path to the DataWeek Directory, while saving the current path to return later
     std::filesystem::path InitialPath = std::filesystem::current_path();
     std::filesystem::current_path(DataWeek);
-    
+
     // Generate the listfiles_ch* files in the Data Directory
     std::fstream listfiles_ch1, listfiles_ch2, listfiles_ch3, listfiles_ch4 ;
     listfiles_ch1.open("listfiles_ch1", std::ios_base::out);
@@ -145,28 +155,42 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
     listfiles_ch3.open("listfiles_ch3", std::ios_base::out);
     listfiles_ch4.open("listfiles_ch4", std::ios_base::out);
 
+    // After creating the file streams revert the current path
+    std::filesystem::current_path(InitialPath);
+
     const std::vector<std::fstream*> listfiles = {&listfiles_ch1, &listfiles_ch2, &listfiles_ch3, &listfiles_ch4};
     const std::vector<std::string> Channels = {"ch1", "ch2", "ch3", "ch4"};
-    
+
     for(auto index = 0; index < listfiles.size(); index++)
     {
       // In most cases lst_files should be of size RunFiles.size()
-      // 
+      //
       // But there will be cases where this size is too small
-      //  this case is take care of by .append()
-      std::vector<std::filesystem::path> lst_files;
-      lst_files.resize(RunFilesToInclude.size());
-      
-      for(auto& lst_file: std::filesystem::directory_iterator(DataWeek))
+      //  this case is take care of by .push_back()
+      std::vector<std::filesystem::path> lst_files(RunFilesToInclude.size());
+
+      const std::string LstRegex = "(.*)" + Channels[index] + "(.*).lst";
+      const std::regex isLSTfile (LstRegex);
+
+      for(const auto& lst_file: std::filesystem::directory_iterator(DataWeek))
       {
-        // Regex to fint the *_ch*_*.lst files to include in the listfiles_ch*
-        const std::string LstRegex = Channels[index] + "_\\.*.lst";
-        const std::regex isLSTfile (LstRegex);
-        if(std::regex_match(std::filesystem::absolute(lst_file).filename().string(), isLSTfile))
-        {
-          lst_files.push_back(lst_file);
-        }
+            if(lst_file.is_regular_file())
+            {
+                auto FileName = std::filesystem::absolute(lst_file).filename().string();
+                // Regex to find the *_ch*_*.lst files to include in the listfiles_ch*
+                if(std::regex_match(FileName, isLSTfile))
+                {
+                    std::cout << FileName << '\n';
+                    lst_files.push_back(FileName);
+                }
+            }
       }
+
+ // TODO: Find out why lst_files have empty entries
+//       std::sort(lst_files.begin(), lst_files.end());
+//       std::cout << lst_files.size() << '\n';
+//       for(auto x: lst_files)
+//           std::cout << x  << '\n';
 
 
       for(auto& FileNumber: RunFilesToInclude)
@@ -189,7 +213,6 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
     listfiles_ch2.close();
     listfiles_ch3.close();
     listfiles_ch4.close();
-
 
         
     }

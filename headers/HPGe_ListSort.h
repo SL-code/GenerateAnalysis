@@ -11,7 +11,7 @@ void GenerateListFiles(std::filesystem::path);
 void FindPositionOfGammaFlash();
 void WriteListSortToAnalysisFile();
 
-std::vector<int> GetRunFilesToInclude(std::filesystem::directory_entry);
+std::vector<int> GetRunFilesToInclude(std::string);
 
 std::vector<std::vector<int>> GetLogFileTable(std::fstream*);
 
