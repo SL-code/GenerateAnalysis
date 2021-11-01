@@ -19,15 +19,13 @@ void HPGe::ListSort()
 
     // TODO: Check if the data directories contain the same weeks of data
 
-    GenerateListFiles(HPGeData[0]);
+    std::for_each(HPGeData.begin(),
+                  HPGeData.end(),
+                  GenerateListFiles);
+
     FindPositionOfGammaFlash();
     WriteListSortToAnalysisFile();
 
-
-//     std::for_each(std::execution::par,
-//                     HPGeData.begin(),
-//                     HPGeData.end(),
-//                     GenerateListFiles);
 
 }
 

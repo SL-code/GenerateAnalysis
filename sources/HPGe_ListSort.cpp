@@ -14,23 +14,33 @@ void GenerateListFiles(std::filesystem::path DataDirectory)
     // Iterate over all data weeks
     for(const auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
     {
+      if(DataWeek.is_directory())
+      {
         // Skip the Sort directory
         if(DataWeek == DataDirectory/"Sort"){continue;}
 
         // Iterate over all files in the data week directory and find the logFile.
         for(const auto& file: std::filesystem::directory_iterator(DataWeek))
         {
+          if(file.is_regular_file())
+          {
             // After finding the log file get the files that will be used for analysis
-            if(std::regex_match( std::filesystem::absolute(file).string(), logFile ))
-            {
-                std::cout << "Generating List Files For: " << std::filesystem::absolute(DataWeek).filename() << '\n';
 
-                std::string FilePath = std::filesystem::absolute(file).string();
-                const std::vector<int> RunFilesToInclude = GetRunFilesToInclude(FilePath);
+            auto file_s = std::filesystem::absolute(file).string();
+            if(std::regex_match(file_s, logFile ))
+            {
+                std::cout << "Generating List Files For: " << DataWeek << '\n';
+
+                std::string LogFilePath = std::filesystem::absolute(file).string();
+                
+                const std::vector<int> RunFilesToInclude = GetRunFilesToInclude(LogFilePath);
+
                 WriteListFiles(RunFilesToInclude, DataWeek);
                 break;
             }
+          }
         }
+      }
     }
 }
 
@@ -49,11 +59,9 @@ void WriteListSortToAnalysisFile()
 std::vector<int> GetRunFilesToInclude(std::string LogFile)
 {
     std::fstream logFile;
-    std::cout << "Inside GetRunFilesToInclude" << LogFile << '\n';
     logFile.open(LogFile, std::fstream::in);
 
 
-    std::cout << "Inside GetRunFilesToInclude " << logFile.is_open() << '\n';
     std::vector<int> RunFiles;
     if(logFile.is_open())
     {
@@ -76,7 +84,6 @@ std::vector<std::vector<int>> GetLogFileTable(std::fstream* logFile)
     std::vector<int> temp;
     temp.resize(5);
 
-    std::cout << "Inside GetLogFileTable " <<'\n';
 
     // A variable to store the line on the file.
     std::string line;
@@ -122,7 +129,6 @@ std::vector<std::vector<int>> GetLogFileTable(std::fstream* logFile)
 
 std::vector<int> RunFilesToInclude(std::vector<std::vector<int>> Table)
 {
-    std::cout << "Inside RunFilesToInclude " <<'\n';
     std::vector<int> RunFiles;
     // Check if any of the Channels have a conting rate of 0
     // If so, exclude that RunFile.
@@ -163,11 +169,7 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
 
     for(auto index = 0; index < listfiles.size(); index++)
     {
-      // In most cases lst_files should be of size RunFiles.size()
-      //
-      // But there will be cases where this size is too small
-      //  this case is take care of by .push_back()
-      std::vector<std::filesystem::path> lst_files(RunFilesToInclude.size());
+      std::vector<std::string> lst_files;
 
       const std::string LstRegex = "(.*)" + Channels[index] + "(.*).lst";
       const std::regex isLSTfile (LstRegex);
@@ -176,38 +178,32 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
       {
             if(lst_file.is_regular_file())
             {
-                auto FileName = std::filesystem::absolute(lst_file).filename().string();
+              std::string FileName = std::filesystem::absolute(lst_file).filename().string();
                 // Regex to find the *_ch*_*.lst files to include in the listfiles_ch*
                 if(std::regex_match(FileName, isLSTfile))
                 {
-                    std::cout << FileName << '\n';
                     lst_files.push_back(FileName);
                 }
             }
       }
 
- // TODO: Find out why lst_files have empty entries
-//       std::sort(lst_files.begin(), lst_files.end());
-//       std::cout << lst_files.size() << '\n';
-//       for(auto x: lst_files)
-//           std::cout << x  << '\n';
-
-
+             
       for(auto& FileNumber: RunFilesToInclude)
       {
         const std::string FileNumber_s = std::to_string(FileNumber);
-        const std::string RunFileRegex = Channels[index] + "_" + FileNumber_s  + ".lst";
+        const std::string RunFileRegex =  "(.*)_" + FileNumber_s  + ".lst";
         const std::regex IsInRunFiles(RunFileRegex);
+
         for(auto& lst_file: lst_files)
         {
-          if(std::regex_match(lst_file.string(), IsInRunFiles))
+          if(std::regex_match(lst_file, IsInRunFiles))
           {
-            std::string FileName   =  lst_file.filename().string();
-            std::cout << FileName << '\n';
+            std::string FileName   =  lst_file;
+            *listfiles[index] << FileName << '\n';
           }
         }
       }
-
+    }
 
     listfiles_ch1.close();
     listfiles_ch2.close();
@@ -215,7 +211,6 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
     listfiles_ch4.close();
 
         
-    }
 }
 
 
