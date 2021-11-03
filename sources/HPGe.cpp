@@ -23,8 +23,11 @@ void HPGe::ListSort()
                   HPGeData.end(),
                   GenerateListFiles);
 
-    FindPositionOfGammaFlash();
-    WriteListSortToAnalysisFile();
+//    FindPositionOfGammaFlash();
+    std::for_each(HPGeData.begin(),
+                  HPGeData.end(),
+                  WriteListSortToAnalysisFile);
+
 
 
 }

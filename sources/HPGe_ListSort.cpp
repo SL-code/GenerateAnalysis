@@ -46,11 +46,34 @@ void GenerateListFiles(std::filesystem::path DataDirectory)
 
 void FindPositionOfGammaFlash()
 {
-
+  //
 }
 
-void WriteListSortToAnalysisFile()
+void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
 {
+  std::fstream analysis_file;
+  // One directory up from the DataDirectory is the AnalysisDirectory
+  analysis_file.open(DataDirectory/".."/"analysis.sh", std::fstream::app);
+
+  for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
+  {
+
+    if(DataWeek.is_directory())
+    {
+      auto it = DataWeek.path().end(); --it; 
+      // the last element in path is the week name
+      std::filesystem::path Week      = *it; --it;
+      // the second to last elemet is the digitiser
+      std::string Digitiser = *it;
+
+      if(Week != "Sort")
+      {
+        WriteListSortLine(analysis_file, Digitiser, Week, (std::vector<int>){0, 0 ,0 ,0});
+      }
+    }
+  }
+
+
 
 }
 
@@ -60,7 +83,6 @@ std::vector<int> GetRunFilesToInclude(std::string LogFile)
 {
     std::fstream logFile;
     logFile.open(LogFile, std::fstream::in);
-
 
     std::vector<int> RunFiles;
     if(logFile.is_open())
@@ -215,6 +237,39 @@ void WriteListFiles(std::vector<int> RunFilesToInclude, std::filesystem::directo
 
 
 
+void WriteListSortLine(std::fstream& analysis_file, std::string Digitiser, std::filesystem::path Week, std::vector<int> OffSets)
+{
+  if(Digitiser == "Dig1")
+  {
+    analysis_file << "echo " << Week << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch1").string() << " " << "9 "  << " " << OffSets[0]   << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch2").string() << " " << "1 "  << " " << OffSets[1]   << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch3").string() << " " << "11"  << " " << OffSets[2]   << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch4").string() << " " << "3 "  << " " << OffSets[3]   << '\n';
+    analysis_file << '\n';
+  }
+
+  if(Digitiser == "Dig2")
+  {
+    analysis_file << "echo " << Week << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch1").string() << " " << "10"  << " " << OffSets[0] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch2").string() << " " << "2 "  << " " << OffSets[1] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch3").string() << " " << "12"  << " " << OffSets[2] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch4").string() << " " << "4 "  << " " << OffSets[3] << '\n';
+    analysis_file << '\n';
+  }
+
+  if(Digitiser == "Dig3")
+  {
+    analysis_file << "echo " << Week << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch1").string() << " " << "5 " << " " << OffSets[0] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch2").string() << " " << "6 " << " " << OffSets[1] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch3").string() << " " << "7 " << " " << OffSets[2] << '\n';
+    analysis_file << "./bin/listsort_Digit4.0" << " " << Digitiser << " " << Week.string() << " " << (Week/"listfiles_ch4").string() << " " << "8 " << " " << OffSets[3] << '\n';
+    analysis_file << '\n';
+  }
+
+}
 
 
 
