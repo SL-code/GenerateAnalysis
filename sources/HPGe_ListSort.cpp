@@ -42,11 +42,50 @@ void GenerateListFiles(std::filesystem::path DataDirectory)
         }
       }
     }
-}
+}   
 
-void FindPositionOfGammaFlash()
+using OffSetTable = std::map<std::filesystem::path, std::vector<int>>;
+OffSetTable FindGammaFlashOffSets(std::filesystem::path DataDirectory)
 {
-  //
+  for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
+  {
+    std::map<std::string, std::vector<std::filesystem::path>> THistFiles;
+    std::vector<std::string> Channels {"ch1", "ch2", "ch3", "ch4"};
+
+    // Iterate over the directories that are not named "Sort"
+    if(DataWeek.is_directory() && DataWeek.path().filename() != "Sort")
+    {
+      // For every Channel 
+      for(auto i = 0; i < Channels.size(); ++i)
+      {
+        // Find all Thist of that channel
+        for(auto& File: std::filesystem::directory_iterator(DataWeek))
+        {
+          // Iterate over all files in DataWeek to find THist_ch*_
+          if(File.is_regular_file())
+          {
+            std::regex THistRegex ("(.*)THist_" + Channels[i] + "_(.*).his(.*)");
+
+            if(std::regex_match(File.path().string(), THistRegex))
+            {
+              std::cout << File.path() << '\n';
+              THistFiles[Channels[i]].push_back(File.path().string());
+            }
+          }
+        } 
+      }
+    }
+
+    for(std::string ch: Channels)
+      std::sort(THistFiles[ch].begin(), THistFiles[ch].end());
+
+  
+
+
+
+  }
+
+  return {};
 }
 
 void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
@@ -54,15 +93,18 @@ void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
   std::fstream analysis_file;
   // One directory up from the DataDirectory is the AnalysisDirectory
   analysis_file.open(DataDirectory/".."/"analysis.sh", std::fstream::app);
+  using OffSetTable = std::map<std::filesystem::path, std::vector<int>>;
+  OffSetTable OffSets = FindGammaFlashOffSets(DataDirectory);
 
   for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
   {
-
     if(DataWeek.is_directory())
     {
       auto it = DataWeek.path().end(); --it; 
+      
       // the last element in path is the week name
       std::filesystem::path Week      = *it; --it;
+   
       // the second to last elemet is the digitiser
       std::string Digitiser = *it;
 
@@ -72,9 +114,6 @@ void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
       }
     }
   }
-
-
-
 }
 
 
