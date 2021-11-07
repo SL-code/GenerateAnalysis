@@ -110,9 +110,7 @@ OffSetTable FindGammaFlashOffSets(std::filesystem::path DataDirectory)
     }
    }
 
-    // TODO: Having GammaFlashPositions convert the positions into offsets so write ListFiles can use them
-    // GammaFlashOffSets
-
+    // Find Gama Flash Mean Position for the whole digitiser data set
     int DigitiserMean;
     bool FirstIteration = true;
     for(auto& [Week,Positions]: GammaFlashPositions)
@@ -146,11 +144,10 @@ OffSetTable FindGammaFlashOffSets(std::filesystem::path DataDirectory)
 void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
 {
   std::fstream analysis_file;
-  // One directory up from the DataDirectory is the AnalysisDirectory
 
+  // One directory up from the DataDirectory is the AnalysisDirectory
   analysis_file.open(DataDirectory/".."/"analysis.sh", std::fstream::app);
 
-  using OffSetTable = std::map<std::filesystem::path, std::vector<int>>;
   OffSetTable OffSets = FindGammaFlashOffSets(DataDirectory);
 
 

@@ -127,8 +127,9 @@ void Analysis::CheckForPreviousAnalysis()
         }
         catch(std::filesystem::filesystem_error Exception)
         {
-            std::random_device rd;  //Will be used to obtain a seed for the random number engine
-            std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+            // Initialize a random number generator
+            std::random_device rd;
+            std::mt19937 gen(rd());
             std::uniform_int_distribution<> distrib(-__INT_MAX__, -1);
 
             std::string RandomString = std::to_string(distrib(gen));
