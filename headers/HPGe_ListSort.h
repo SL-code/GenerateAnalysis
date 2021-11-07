@@ -7,6 +7,12 @@
 #include <string>
 #include <limits>
 
+#define NUMBER_OF_DIGITS 3
+#define MAX_NUMBER_TOF_CHANNELS 11999
+
+
+
+
 void GenerateListFiles(std::filesystem::path);
 void FindPositionOfGammaFlash();
 void WriteListSortToAnalysisFile(std::filesystem::path);

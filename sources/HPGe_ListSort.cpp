@@ -1,5 +1,5 @@
 #include "HPGe_ListSort.h"
-#define NumberOfDigits 3
+
 
 void GenerateListFiles(std::filesystem::path DataDirectory)
 {
@@ -47,15 +47,22 @@ void GenerateListFiles(std::filesystem::path DataDirectory)
 using OffSetTable = std::map<std::filesystem::path, std::vector<int>>;
 OffSetTable FindGammaFlashOffSets(std::filesystem::path DataDirectory)
 {
+  using PositionTable = std::map<std::filesystem::path, std::vector<int>>;
+  PositionTable GammaFlashPositions;
+  OffSetTable GammaFlashOffSets;
+  //
   for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
   {
-    std::map<std::string, std::vector<std::filesystem::path>> THistFiles;
+
+    std::map<std::string, std::vector<std::string>> THistFiles;
     std::vector<std::string> Channels {"ch1", "ch2", "ch3", "ch4"};
 
     // Iterate over the directories that are not named "Sort"
-    if(DataWeek.is_directory() && DataWeek.path().filename() != "Sort")
+    if(DataWeek.is_directory())
     {
-      // For every Channel 
+        if(DataWeek.path().filename().string() == "Sort") continue;
+        std::cout << "Finding Gamma Flash For: " << DataWeek << ' ';
+      // For every Channel
       for(auto i = 0; i < Channels.size(); ++i)
       {
         // Find all Thist of that channel
@@ -65,52 +72,104 @@ OffSetTable FindGammaFlashOffSets(std::filesystem::path DataDirectory)
           if(File.is_regular_file())
           {
             std::regex THistRegex ("(.*)THist_" + Channels[i] + "_(.*).his(.*)");
-
-            if(std::regex_match(File.path().string(), THistRegex))
+            std::string FilePathString = File.path().string();
+            if(std::regex_match(FilePathString, THistRegex))
             {
-              std::cout << File.path() << '\n';
-              THistFiles[Channels[i]].push_back(File.path().string());
+              THistFiles[Channels[i]].push_back(FilePathString);
             }
           }
         } 
       }
     }
 
+    // Sort the THistFiles to have the older ones at the end
     for(std::string ch: Channels)
       std::sort(THistFiles[ch].begin(), THistFiles[ch].end());
 
-  
+    // Get the position of the gamma flash for each channel
+    for(auto i = 0; i < Channels.size(); ++i)
+    {
+        // TODO: The -10 is a hardcoded euristic, it has to be a better way of finding the last THist
+        std::string LastTHistFile = THistFiles[Channels[i]][THistFiles[Channels[i]].size() - 10];
 
+        std::fstream THistStream;
+        THistStream.open(LastTHistFile, std::fstream::in);
+        int Index = 0, Count = 0, MaxIndex = 0, MaxCount = 0;
 
+        while(THistStream)
+        {
+            THistStream >> Index >> Count;
+            if(Count > MaxCount && Index < MAX_NUMBER_TOF_CHANNELS)
+            {
+                MaxCount = Count;
+                MaxIndex = Index;
+            }
+        }
 
-  }
+        GammaFlashPositions[DataWeek.path()].push_back(MaxIndex);
+    }
+   }
 
-  return {};
+    // TODO: Having GammaFlashPositions convert the positions into offsets so write ListFiles can use them
+    // GammaFlashOffSets
+
+    int DigitiserMean;
+    bool FirstIteration = true;
+    for(auto& [Week,Positions]: GammaFlashPositions)
+    {
+        int WeekMean = (Positions[0] + Positions[1] + Positions[2] + Positions[3]) / 4;
+        if(FirstIteration)
+        {
+            DigitiserMean = WeekMean;
+            FirstIteration = false;
+        }
+        else
+        {
+            DigitiserMean = (DigitiserMean + WeekMean) / 2;
+        }
+    }
+
+    std::cout << "Mean Gamma Flash Position: " << DigitiserMean << '\n';
+
+    for(auto& [Week,Positions]: GammaFlashPositions)
+    {
+        int GammaOffSet1 = DigitiserMean - Positions[0];
+        int GammaOffSet2 = DigitiserMean - Positions[1];
+        int GammaOffSet3 = DigitiserMean - Positions[2];
+        int GammaOffSet4 = DigitiserMean - Positions[3];
+        GammaFlashOffSets[Week] = {GammaOffSet1, GammaOffSet2, GammaOffSet3, GammaOffSet4};
+    }
+
+  return GammaFlashOffSets;
 }
 
 void WriteListSortToAnalysisFile(std::filesystem::path DataDirectory)
 {
   std::fstream analysis_file;
   // One directory up from the DataDirectory is the AnalysisDirectory
+
   analysis_file.open(DataDirectory/".."/"analysis.sh", std::fstream::app);
+
   using OffSetTable = std::map<std::filesystem::path, std::vector<int>>;
   OffSetTable OffSets = FindGammaFlashOffSets(DataDirectory);
+
 
   for(auto& DataWeek: std::filesystem::directory_iterator(DataDirectory))
   {
     if(DataWeek.is_directory())
     {
-      auto it = DataWeek.path().end(); --it; 
-      
+      auto it = DataWeek.path().end(); --it;
+
       // the last element in path is the week name
       std::filesystem::path Week      = *it; --it;
-   
+
       // the second to last elemet is the digitiser
       std::string Digitiser = *it;
 
       if(Week != "Sort")
       {
-        WriteListSortLine(analysis_file, Digitiser, Week, (std::vector<int>){0, 0 ,0 ,0});
+        std::cout << "Write ListSort For: " << DataWeek << '\n';
+        WriteListSortLine(analysis_file, Digitiser, Week, OffSets[DataWeek.path()]);
       }
     }
   }
@@ -175,7 +234,7 @@ std::vector<std::vector<int>> GetLogFileTable(std::fstream* logFile)
             {
                 temp[index] = std::stoi(token[0]);
                 // Remove "NumberOfDigits" characters to get the next token
-                line = line.substr(line.find(token.str()) + NumberOfDigits,
+                line = line.substr(line.find(token.str()) + NUMBER_OF_DIGITS,
                                    line.size());
                 ++index;
             }
