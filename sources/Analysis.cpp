@@ -6,6 +6,8 @@
 
 Analysis::Analysis(std::string& Path, int NumberOfTOFChannels):m_AnalysisDirectory{Path}, m_NumberOfTOFChannels{NumberOfTOFChannels}
 {
+
+    CheckForPreviousAnalysis();
     GenerateProperFileStructure();
     m_HPGe = HPGe{m_AnalysisDirectory};
     m_FC = FissionChamber{m_AnalysisDirectory};
@@ -112,6 +114,31 @@ void Analysis::GenerateProperFileStructure()
 }
 
 
+void Analysis::CheckForPreviousAnalysis()
+{
+    if(std::filesystem::exists(m_AnalysisDirectory/"analysis.sh"))
+    {
+        std::cout << "The current folder has an \"analysis.sh\" file.\n" ;
+
+        try
+        {
+            std::filesystem::rename(m_AnalysisDirectory/"analysis.sh", m_AnalysisDirectory/"analysis.sh.backup");
+            std::cout << "Creating backup of " << m_AnalysisDirectory/"analysis.sh" << " into " << m_AnalysisDirectory/"analysis.sh.backup" << "\n";
+        }
+        catch(std::filesystem::filesystem_error Exception)
+        {
+            std::random_device rd;  //Will be used to obtain a seed for the random number engine
+            std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
+            std::uniform_int_distribution<> distrib(-__INT_MAX__, -1);
+
+            std::string RandomString = std::to_string(distrib(gen));
+            std::string BackupFile = "analysis.sh.backup" + RandomString;
+
+            std::filesystem::rename(m_AnalysisDirectory/"analysis.sh", m_AnalysisDirectory/BackupFile);
+            std::cout << "Creating backup of " << m_AnalysisDirectory/"analysis.sh" << " into " << m_AnalysisDirectory/BackupFile << "\n";
+        }
+    }
+}
 
 
 void Analysis::VerifyYield()

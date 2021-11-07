@@ -7,6 +7,8 @@
 #include <array>
 #include <iostream>
 #include <algorithm>
+#include <random>
+
 #include "HPGe.h"
 #include "FC.h"
 
@@ -19,6 +21,7 @@ class Analysis: public HPGe, public FissionChamber
 
 private:
     void GenerateProperFileStructure();
+    void CheckForPreviousAnalysis();
 
 public:
     Analysis(std::string&, int);
