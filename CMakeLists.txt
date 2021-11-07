@@ -1,10 +1,14 @@
 cmake_minimum_required(VERSION 3.0.0)
 
 project(generate_analysis)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 
 
-set(SOURCES ./sources/Analysis.cpp ./sources/HPGe.cpp ./sources/FC.cpp ./sources/HPGe_ListSort.cpp)
+set(SOURCES ./sources/Analysis.cpp
+            ./sources/HPGe.cpp
+            ./sources/FC.cpp
+            ./sources/HPGe_ListSort.cpp
+            ./sources/HPGe_AddMatrix.cpp)
 
 SET(GCC_COVERAGE_COMPILE_FLAGS "-g" )
 
