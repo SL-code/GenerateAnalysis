@@ -9,7 +9,7 @@ Analysis::Analysis(std::string& Path, int NumberOfTOFChannels):m_AnalysisDirecto
 
     CheckForPreviousAnalysis();
     GenerateProperFileStructure();
-    m_HPGe = HPGe{m_AnalysisDirectory};
+    m_HPGe = HPGe{m_AnalysisDirectory, m_NumberOfTOFChannels};
     m_FC = FissionChamber{m_AnalysisDirectory};
 }
 
@@ -103,6 +103,8 @@ void Analysis::GenerateProperFileStructure()
         "Msc",
         "Test",
         "Sort",
+        "Sort/Amplitude",
+        "Sort/Time",
         "Yield"
     };
 
